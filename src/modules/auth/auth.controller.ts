@@ -1,29 +1,29 @@
+import auth from "./auth.services.ts";
 import { Router } from "express";
-import  AS from "./auth.service"
-import * as  AV from "./auth.validation"
-import { validation } from "../../common/middleware/validation";
-import { authentication } from "../../common/middleware/authentication";
+import { signUpSchema, signInSchema, confirmSignUpSchema, forgetPassword, resetPassowrd } from "./auth.validationSchema.ts";
+import { validationMiddleWare } from "../../common/middleware/validation.ts";
+import { authenticate } from "../../common/middleware/authenticate.ts";
 
+export const authRouter: Router = Router();
 
-const authRouter = Router()
+authRouter.post("/sign-up", validationMiddleWare(signUpSchema), auth.signUp);
+authRouter.post(
+  "/confirm-sign-up",
+  validationMiddleWare(confirmSignUpSchema),
+  auth.confirmMail,
+);
+authRouter.post("/log-in", validationMiddleWare(signInSchema), auth.logIn);
+authRouter.post('/resend-otp',auth.reSendOtp)
+authRouter.post("/sign-with-google", auth.signUpAndLoginWithGmail);
+authRouter.post("/get-profile",authenticate, auth.getProfile);
+authRouter.put(
+  "/forget-password",
+  validationMiddleWare(forgetPassword),
+  auth.forgetPassword,
+);
 
-authRouter.post("/signUp/gmail" , AS.signUpWithGmail)
-authRouter.post("/signUp" ,validation(AV.signUpSchema), AS.signUp )
-authRouter.post("/confirmeEmail" ,validation(AV.confirmeEmailSchema), AS.confirmeEmail )
-authRouter.post("/resendOtp" ,validation(AV.resendOtpSchema), AS.resendOtp )
-authRouter.post("/signIn" ,validation(AV.signInSchema), AS.signIn )
-authRouter.get("/getProfile" ,authentication, AS.getProfile )
-authRouter.patch("/update_Password" ,validation(AV.update_PasswordSchema) , authentication, AS.update_Password )
-authRouter.patch("/forget-password", validation(AV.forgetPasswordSchema),AS.forgetPassword)                                        
-authRouter.patch("/reset-password", validation(AV.resetPasswordSchema),AS.resetPassword)
-authRouter.patch("/forget-password-Link", validation(AV.forgetPasswordLinkSchema),AS.forgetPasswordLink)                                        
-authRouter.patch("/reset-password-Link/:token", validation(AV.resetPasswordLinkSchema),AS.resetPasswordLink)
-//
-authRouter.post("/logout"  , authentication, AS.logout )
-
-
-
-
-
-
-export default authRouter
+authRouter.patch(
+  "/reset-password",
+  validationMiddleWare(resetPassowrd),
+  auth.resetPassowrd,
+);

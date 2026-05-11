@@ -21,10 +21,12 @@ export interface Iuser
     confirmEmail?:boolean,
     createdAt:Date,
     updatedAt:Date,
+    deleteAt?:string,
     profilePicture?: {
         secure_url?: string;
         public_id?: string;
     },
+    friends?: Types.ObjectId[],
     provider?:providerEnum,
     
     changeCredential?: Date;
@@ -46,8 +48,8 @@ const userSchema = new mongoose.Schema<Iuser>(
             type:String,
             required:true,
             trim:true,
-            min:3,
-            max:20
+            minlength:3,
+            maxlength:20
         },
         email: {
         type: String,
@@ -70,7 +72,7 @@ const userSchema = new mongoose.Schema<Iuser>(
     },
     gender:{
         type:String,
-        enum:GenderEnum,
+        enum: Object.values(GenderEnum),
         default:GenderEnum.male
         
     },
@@ -84,6 +86,7 @@ const userSchema = new mongoose.Schema<Iuser>(
         trim:true
         
     },
+    deleteAt: String,
 
     role:{
         type:String,
@@ -95,7 +98,8 @@ const userSchema = new mongoose.Schema<Iuser>(
             secure_url: { type: String, default: null },
             public_id: { type: String, default: null }
         },
-    confirmEmail:Boolean
+    confirmEmail:Boolean,
+    friends:[{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     },
     {
         timestamps: true,
@@ -156,6 +160,46 @@ userSchema.virtual("userName")
 //     console.log(this);
 //     this.is_new = this.isNew
 //     if(this.isModified("password"))
+
+
+// userSchema.pre("save" , function (doc)
+// {
+//     console.log("...............pre hook insert Many...........");
+//     console.log(this);
+//     console.log(doc);
+    
+    
+// })
+
+// userSchema.post("insertMany" , function (save)
+// {
+//     console.log("...............pre hook insert Many...........");
+//     console.log(this);
+//     console.log(save);
+    
+    
+// })
+
+// userSchema.pre("findOne" , function ()
+// {
+//     console.log("...............pre hook find one ...........");
+//     console.log(this.getQuery());
+//     const {paranoid, ...rest} = this.getQuery()
+//     console.log({rest});
+    
+//     if(paranoid == false)
+//     {
+//         this.setQuery({...rest})
+//     }else {
+//         this.setQuery({...rest, deleteAt: {$exists: false}})
+//     }
+    
+    
+    
+// })
+
+
+
 
 const userModel = mongoose.models.user || mongoose.model<Iuser>("user" , userSchema)
 

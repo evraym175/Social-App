@@ -18,6 +18,9 @@ import { randomUUID} from "crypto";
 import TokenService from "../../common/utils/token/token.service";
 import {OAuth2Client}  from'google-auth-library';
 import { ACCESS_SEUCRIT_KEY_ADMIN, ACCESS_SEUCRIT_KEY_USER, CLIENT_ID, REFRESH_SEUCRIT_KEY_ADMIN, REFRESH_SEUCRIT_KEY_USER } from "../../config/config.service";
+import { S3 } from "@aws-sdk/client-s3";
+import { S3Service } from "../../common/service/s3.service";
+import notificationService from "../../common/service/notification.service";
 
 
 
@@ -28,7 +31,10 @@ class UserServies {
 
     private readonly _userModel = new UserRepository()
     private readonly _redisService =  RedisService
+    private readonly notificationService =  notificationService
     private readonly _tokenService =  TokenService
+    private readonly _s3Service =  new S3Service();
+
 
     constructor() {}
 
@@ -274,7 +280,7 @@ signUpWithGmail = async (
     
 signIn = async (req: Request , res : Response , next : NextFunction)=>
 {
-    const { email , password}:signInDto = req.body
+    const { email , password , fcm}:signInDto = req.body
     const user = await this._userModel.findOne({ filter:{email ,
         provider:providerEnum.system,
         confirmEmail: {$exists: true}
@@ -305,6 +311,19 @@ signIn = async (req: Request , res : Response , next : NextFunction)=>
             expiresIn:"1y",
             jwtid
         }})
+
+        if(fcm){
+            await this._redisService.addFCM({userId:user._id , FCMToken : fcm})
+            const tokens = await this._redisService.getFCMs({userId:user._id})
+
+            await this.notificationService.sendNotifications({
+                tokens,
+                data:{
+                    title:`hi ${user.userName}`,
+                    body:"You have successfully logged in to your account."
+                }   
+            })
+        }
     successResponse({res , data:{access_token , refresh_token}})
 }
 
@@ -499,6 +518,20 @@ resetPasswordLink = async (req: Request, res: Response, next: NextFunction) => {
         message: "password updated"
     });
 }
+
+
+    uploadImage = async (req: Request , res : Response , next : NextFunction)=>
+{
+        const{fileName , ContentType}= req.body
+        const {url , Key} = await this._s3Service.createPresigneUrl(
+        {
+            fileName,
+            ContentType,
+            path:`users/${req.user._id}`
+        }
+    )
+}
+
 }
 
 export default new UserServies()

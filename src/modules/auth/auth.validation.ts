@@ -22,7 +22,7 @@ export const signUpSchema = {
         ctx.addIssue({
             code:"custom",
             path:["cpassword"],
-            message:"passwoed not match"
+            message:"passwoed not match..🤐💀"
         })
     }
 })
@@ -30,7 +30,7 @@ export const signUpSchema = {
 // .refine((data)=>{
 //     return data.password == data.cpassword
 // },{
-//     message:"passwoed not match",
+//     message:"passwoed not match..🤐",
 //     path:["cpassword" , "password"]
 // })
 }
@@ -54,6 +54,7 @@ export const signInSchema:any = {
     body:z.strictObject({
     password: z.string().min(6).max(25).optional(),
     email: z.string().email(),
+    fcm: z.string(),
 })}
 
 export const update_PasswordSchema: any = {
@@ -88,7 +89,7 @@ export const resetPasswordSchema: any = {
             ctx.addIssue({
                 code: "custom",
                 path: ["cPassword"],
-                message: "password not match"
+                message: "password not match..🤐💀"
             });
         }
     })
@@ -111,7 +112,7 @@ export const resetPasswordLinkSchema: any = {
             ctx.addIssue({
                 code: "custom",
                 path: ["cPassword"],
-                message: "password not match"
+                message: "password not match..🤐💀"
             });
         }
     }),
