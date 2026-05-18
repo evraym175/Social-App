@@ -13,6 +13,8 @@ import userModel from "./DB/models/user.model"
 import { S3Service } from "./common/service/s3.service"
 import { pipeline } from "stream/promises"
 import NotificationService from "./common/service/notification.service"
+import { GraphQLString ,GraphQLObjectType , GraphQLSchema, GraphQLNonNull, GraphQLInt, GraphQLList,} from 'graphql';
+import { createHandler } from 'graphql-http/lib/use/express';
 
 
 const app:express.Application = express()
@@ -55,7 +57,7 @@ origin: function (origin:any, callback:any) {
     
 
     app.get("/", (req: Request, res: Response, next: NextFunction) => {
-        successResponse({ res, data: "welcome to social media app..💬❤️"  , status:201 , message: "doone"})
+        successResponse({ res, data: "welcome to social media app"  , status:201 , message: "doone"})
     })
 
 
@@ -155,8 +157,8 @@ origin: function (origin:any, callback:any) {
 
     // async function test(){
     //     const user = new userModel({
-    //         userName:"khaled Nabil",
-    //         email:`khaled${Date.now()}@gmail.com`,
+    //         userName:"evraym ashraf",
+    //         email:`evraym${Date.now()}@gmail.com`,
     //         password:"12345678",
     //         age:25,
     //     })
@@ -172,8 +174,8 @@ origin: function (origin:any, callback:any) {
 
     // async function test(){
     //     const user = new userModel({
-    //         firstName:"khaled",
-    //         email:`khaled${Date.now()}@gmail.com`,
+    //         firstName:"evraym",
+    //         email:`evraym${Date.now()}@gmail.com`,
     //         age:20
     //     })
     //     await user.updateOne({age:25})
@@ -194,6 +196,54 @@ origin: function (origin:any, callback:any) {
 
 // test();
 
+    const users = [
+    { id: 1, name: "heba", age: 21, specielization: "MERN Stack" },
+    { id: 2, name: "mohamed", age: 22, specielization: "MERN Stack" },
+    { id: 3, name: "norhan", age: 21, specielization: "MERN Stack" },
+    { id: 4, name: "sara", age: 22, specielization: "MERN Stack" },
+    { id: 5, name: "mariam", age: 23, specielization: "MERN Stack" },
+  ];
+  const userTypeObject = new GraphQLObjectType({
+    name: "getUser",
+    fields: {
+      id: { type: GraphQLInt },
+      name: { type: GraphQLString },
+      age: { type: GraphQLInt },
+      specielization: { type: GraphQLString },
+    },
+  });
+  const schema = new GraphQLSchema({
+    query: new GraphQLObjectType({
+      name: "Query", // it is  the root query
+      description: "query info",
+      fields: {
+        // this are the queries
+        getUser: {
+          type: userTypeObject,
+          args: {
+            id: { type: new GraphQLNonNull(GraphQLInt) },
+          },
+          resolve: (parent, args) => {
+            const user = users.find((user) => user.id == args.id);
+            if (!user) {
+              throw new AppError("user not found");
+            }
+            return user;
+          },
+        },
+        listUsers: {
+          type: new GraphQLList(userTypeObject),
+
+          resolve: () => {
+            return users;
+          },
+        },
+      },
+    }),
+  });
+
+  app.use("/graphql", createHandler({ schema })); // the endpoint for the graphql
+
     app.use("/auth" , authRouter)
 
 
@@ -205,7 +255,7 @@ origin: function (origin:any, callback:any) {
 
     app.listen(port , ()=>
     {
-        console.log(`Server is running on port ${port}......⏳✅`);
+        console.log(`Server is running on port ${port}`);
     })
 
 }

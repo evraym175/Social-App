@@ -5,8 +5,12 @@ import * as  PV from "../posts/post.validation"
 import multerCloud from "../../common/middleware/multer.cloud";
 import { Store_Enum } from "../../common/enum/multer.enum";
 import { validation } from "../../common/middleware/validation";
+import commentRouter from "../comment/comment.controller";
+
 
 const postRouter=Router()
+
+postRouter.use("/:postId/comments{/:commentId/replies}" , commentRouter)
 
 
 postRouter.post("/upload"  ,authentication,

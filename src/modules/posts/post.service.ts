@@ -11,6 +11,7 @@ import { Types } from "mongoose";
 import { Store_Enum } from "../../common/enum/multer.enum";
 import { randomUUID } from "node:crypto";
 import { availabilityposts } from "../../common/utils/post.utils";
+import CommentRepository from "../../DB/repositories/comment.respositry";
 
 
 class postServies {
@@ -20,6 +21,7 @@ class postServies {
     private readonly _redisService = RedisService
     private readonly _tokenService = TokenService
     private readonly _notificationService = notificationService
+    private readonly _commentModel = new CommentRepository()
 
 
 
@@ -239,7 +241,7 @@ class postServies {
             if(content) post.content = content
             if(allowComment) post.allowComment = allowComment
             if(availability) post.availability = availability
-            
+
             await post.save()
 
 
@@ -247,7 +249,48 @@ class postServies {
     successResponse({res })
 }
 
+deletePost = async (req: Request, res: Response, next: NextFunction) => {
+    try {
 
+        const { postId } = req.params;
+
+        const post = await this._postModel.findOneAndDelete({
+            filter: {
+                _id: postId,
+                createdBy: req.user._id
+            }
+        });
+
+        if (!post) {
+            throw new AppError(
+                "post not found or not authorized",
+                404
+            );
+        }
+
+        // delete post attachments from s3
+        if (post.attachments?.length) {
+            await this._s3Service.deleteFiles(
+                post.attachments
+            );
+        }
+
+        // delete comments related to post
+        await this._commentModel.deleteMany({
+            filter: {
+        postId: post._id
+    }
+        });
+
+        return successResponse({
+            res,
+            message: "post deleted successfully"
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
 
 }
 
